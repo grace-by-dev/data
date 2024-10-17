@@ -2,20 +2,14 @@ from airflow.decorators import dag, task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models import Variable
 
+from common import postgres_retrieve
+
 
 @dag(
     schedule_interval=None,
     tags=["step-of-faith"],
 )
 def remind_of_seminars():
-    @task
-    def extract() -> list:
-        with PostgresHook("postgres").get_cursor() as cur:
-            data = cur.execute("select user_id, seminar from step_of_faith.users")
-            data = cur.fetchall()
-
-        return data
-    
     @task
     def send_out(data: list):
         import telebot
@@ -38,8 +32,8 @@ def remind_of_seminars():
             bot.send_message(user_id, message, reply_markup=keyboard)
             
    
-   
-    send_out(extract())
+    q = "select user_id, seminar from step_of_faith.users"
+    send_out(postgres_retrieve(q))
 
 
 remind_of_seminars()
