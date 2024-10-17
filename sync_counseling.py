@@ -1,6 +1,5 @@
 import pendulum
 from datetime import timedelta
-from collections import defaultdict
 
 from airflow.decorators import dag, task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
@@ -15,7 +14,7 @@ from airflow.models import Variable
 )
 def sync_counselings():
     @task
-    def extract() -> dict:
+    def extract() -> list:
         q = """select counselor_id, time::varchar, user_id is not null as occupied
             from step_of_faith.schedule_counselor_appointment
             order by counselor_id, time;
@@ -25,16 +24,24 @@ def sync_counselings():
             data = cur.execute(q)
             data = cur.fetchall()
 
-        out = defaultdict(list)
-        for row in data:
-            out[row[0]].append(row[1:])
-
-        return out
+        return data
     
     @task
-    def load(data: dict):
+    def load(data: list):
         import gspread
         import tempfile
+        import pandas as pd
+
+
+        data = pd.DataFrame(data, columns=["counselor", "time", "occupied"])
+        data = data.pivot(values="occupied", index="counselor", columns="time")
+        data.index = data.index.rename(None)
+        data.columns = data.columns.rename(None)
+        columns = [None] + data.columns.tolist()
+        data = data.to_records().tolist()
+        data = [columns] + data
+
+
 
 
         with tempfile.NamedTemporaryFile("w") as f:
@@ -42,10 +49,8 @@ def sync_counselings():
             f.flush()
             client = gspread.service_account(f.name)
         book = client.open_by_key(Variable.get("google-token"))
-        for counselor_id, schedule in data.items():
-            sheet = book.get_worksheet_by_id(counselor_id)
-            sheet.clear()
-            sheet.update([("Время","Занято")] + schedule)
+        sheet = book.get_worksheet_by_id(406103439)
+        sheet.update(data)
    
    
     load(extract())
