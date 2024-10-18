@@ -18,7 +18,7 @@ def backoff(mult):
     time.sleep(timeout)
 
 def get_sheet(sheet_id: int) -> gspread.worksheet.Worksheet:
-    backoff(4)
+    backoff(3)
     with tempfile.NamedTemporaryFile("w") as f:
         f.write(Variable.get("google-service-json"))
         f.flush()
@@ -34,7 +34,7 @@ def upload_to_sheet(data: list, sheet_id: int, clear: bool = False) -> None:
     strategy = np.random.choice(["full","quarters","rows"])
     logging.info(f"Got \"{strategy}\" strategy")
     if strategy == "full":
-        backoff(0.2)
+        backoff(0.4)
         sheet.update(data)
     elif strategy == "quarters":
         leny, lenx = len(data), len(data[0])
@@ -57,13 +57,13 @@ def upload_to_sheet(data: list, sheet_id: int, clear: bool = False) -> None:
 
         for qrow, rrow in zip(quarters, ranges):
             for q, r in zip(qrow, rrow):
-                backoff(0.2)
+                backoff(0.3)
                 sheet.update(q, r)
     else:
         if not clear:
             sheet.clear()
         for row in data:
-            backoff(0.1)
+            backoff(0.2)
             sheet.append_row(row)
 
 

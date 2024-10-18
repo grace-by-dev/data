@@ -6,8 +6,8 @@ from common import postgres_retrieve, upload_to_sheet
 
 
 @dag(
-    schedule_interval=timedelta(minutes=5),
-    start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
+    schedule_interval="2-59/5 8-19 * * *",
+    start_date=pendulum.datetime(2024, 1, 1, tz="Europe/Minsk"),
     catchup=False,
     tags=["step-of-faith"],
 )

@@ -14,9 +14,10 @@ def sync_schedule():
     def load(data: list):
         conn =  PostgresHook("postgres").get_conn()
         with conn.cursor() as cur:
+            cur.execute("truncate step_of_faith.schedule;")
             execute_batch(
                 cur,
-                 "insert into step_of_faith.schedule (day, time, event) values (%s, %s, %s);",
+                 """insert into step_of_faith.schedule (day, time, event) values (%s, %s, %s);""",
                  data
             )
             conn.commit()
