@@ -38,27 +38,25 @@ def upload_to_sheet(data: list, sheet_id: int, clear: bool = False) -> None:
         sheet.update(data)
     elif strategy == "quarters":
         leny, lenx = len(data), len(data[0])
-        midy, resy = divmod(leny, 2)
+        midy = leny // 2
         midx = lenx // 2
-        ranges = [
-            [f"{cols[0]}{1}:{cols[midx-1]}{midy}", f"{cols[midx]}{1}:{cols[lenx-1]}{midy}"], 
-            [f"{cols[0]}{midy+1}:{cols[midx-1]}{leny}", f"{cols[midx]}{midy+1}:{cols[lenx-1]}{leny}"]
+        data = np.array(data)
+        quarters = [
+            data[:midy, :midx],
+            data[:midy, midx:],
+            data[midy:, :midx],
+            data[midy:, midx:]
         ]
-        quarters = [[[], []], [[], []]]
-        for i in range(midy):
-            quarters[0][0].append(data[i][:midx])
-            quarters[0][1].append(data[i][midx:])
-            quarters[1][0].append(data[midy+i][:midx])
-            quarters[1][1].append(data[midy+i][midx:])
+        ranges = [
+            f"{cols[0]}{1}:{cols[midx-1]}{midy}", 
+            f"{cols[midx]}{1}:{cols[lenx-1]}{midy}", 
+            f"{cols[0]}{midy+1}:{cols[midx-1]}{leny}", 
+            f"{cols[midx]}{midy+1}:{cols[lenx-1]}{leny}"
+        ]
 
-        if resy:
-            quarters[1][0].append(data[-1][:midx])
-            quarters[1][1].append(data[-1][midx:])
-
-        for qrow, rrow in zip(quarters, ranges):
-            for q, r in zip(qrow, rrow):
-                backoff(0.3)
-                sheet.update(q, r)
+        for q, r in zip(quarters, ranges):
+            backoff(0.3)
+            sheet.update(q.tolist(), r)
     else:
         if not clear:
             sheet.clear()

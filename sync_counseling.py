@@ -19,7 +19,7 @@ def sync_counselings():
         data = data.pivot(values="occupied", index="counselor", columns="time")
         data.index = data.index.rename(None)
         data.columns = data.columns.rename(None)
-        columns = [None] + data.columns.tolist()
+        columns = ["✝️"] + data.columns.tolist()
         data = data.to_records().tolist()
         data = [columns] + data
 
