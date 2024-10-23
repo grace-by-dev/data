@@ -1,4 +1,2 @@
-apache-airflow[postgres]==2.10.2
-gspread==6.1.4
-pandas==2.2.3
-pendulum==3.0.0
+-r ./docker/requirements.txt
+pre-commit
