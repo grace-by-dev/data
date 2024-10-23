@@ -1,8 +1,8 @@
+from airflow.decorators import dag
+from airflow.decorators import task
+from common import postgres_retrieve
+from common import upload_to_sheet
 import pendulum
-from datetime import timedelta
-
-from airflow.decorators import dag, task
-from common import postgres_retrieve, upload_to_sheet
 
 
 @dag(
@@ -11,15 +11,10 @@ from common import postgres_retrieve, upload_to_sheet
     catchup=False,
     tags=["step-of-faith"],
 )
-def sync_seminars():
+def sync_seminars() -> None:
     @task
     def upload(data: list) -> None:
-        upload_to_sheet(
-            data=[("Название","Записавшиеся")] + data, 
-            sheet_id=1712708177,
-            clear=True
-        )
-
+        upload_to_sheet(data=[("Название", "Записавшиеся"), *data], sheet_id=1712708177, clear=True)
 
     q = """select 
             coalesce(seminar, '<none>'), 
@@ -27,7 +22,7 @@ def sync_seminars():
         from step_of_faith.users 
         group by seminar 
         order by seminar;"""
-    
+
     upload(postgres_retrieve(q))
 
 

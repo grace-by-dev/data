@@ -1,21 +1,23 @@
-from airflow.decorators import task
+import logging
+import string
 import tempfile
-import gspread
+import time
+
+from airflow.decorators import task
 from airflow.models import Variable
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-import logging
+import gspread
 import numpy as np
-import time
-import string
 
 
 cols = string.ascii_uppercase
 
 
-def backoff(mult):
+def backoff(mult: int) -> None:
     timeout = np.random.noncentral_chisquare(10, 3) * mult
     logging.info(f"Sleeping for {timeout:.2f} seconds")
     time.sleep(timeout)
+
 
 def get_sheet(sheet_id: int) -> gspread.worksheet.Worksheet:
     backoff(3)
@@ -24,15 +26,16 @@ def get_sheet(sheet_id: int) -> gspread.worksheet.Worksheet:
         f.flush()
         client = gspread.service_account(f.name)
     book = client.open_by_key(Variable.get("google-token"))
-    
+
     return book.get_worksheet_by_id(sheet_id)
+
 
 def upload_to_sheet(data: list, sheet_id: int, clear: bool = False) -> None:
     sheet = get_sheet(sheet_id)
     if clear:
         sheet.clear()
-    strategy = np.random.choice(["full","quarters","rows"])
-    logging.info(f"Got \"{strategy}\" strategy")
+    strategy = np.random.choice(["full", "quarters", "rows"])
+    logging.info(f'Got "{strategy}" strategy')
     if strategy == "full":
         backoff(0.4)
         sheet.update(data)
@@ -41,17 +44,12 @@ def upload_to_sheet(data: list, sheet_id: int, clear: bool = False) -> None:
         midy = leny // 2
         midx = lenx // 2
         data = np.array(data)
-        quarters = [
-            data[:midy, :midx],
-            data[:midy, midx:],
-            data[midy:, :midx],
-            data[midy:, midx:]
-        ]
+        quarters = [data[:midy, :midx], data[:midy, midx:], data[midy:, :midx], data[midy:, midx:]]
         ranges = [
-            f"{cols[0]}{1}:{cols[midx-1]}{midy}", 
-            f"{cols[midx]}{1}:{cols[lenx-1]}{midy}", 
-            f"{cols[0]}{midy+1}:{cols[midx-1]}{leny}", 
-            f"{cols[midx]}{midy+1}:{cols[lenx-1]}{leny}"
+            f"{cols[0]}{1}:{cols[midx-1]}{midy}",
+            f"{cols[midx]}{1}:{cols[lenx-1]}{midy}",
+            f"{cols[0]}{midy+1}:{cols[midx-1]}{leny}",
+            f"{cols[midx]}{midy+1}:{cols[lenx-1]}{leny}",
         ]
 
         for q, r in zip(quarters, ranges):
@@ -72,4 +70,3 @@ def postgres_retrieve(query: str) -> list:
         data = cur.fetchall()
 
     return data
-
