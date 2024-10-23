@@ -28,7 +28,7 @@ services:
     build: ./docker
     restart: always
     ports:
-      - 8082:8080
+      - 8080:8080
     environment:
       AIRFLOW_USERNAME: $AIRFLOW_USERNAME
       AIRFLOW_FIRSTNAME: $AIRFLOW_FIRSTNAME
