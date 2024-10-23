@@ -41,8 +41,8 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
       AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-      AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: Europe/Minsk
-      AIRFLOW__WEB_SERVER__WEB_UI_THEME: dark
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: &tz Europe/Minsk
+      AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: *tz
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
     
     volumes:
