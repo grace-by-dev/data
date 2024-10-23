@@ -3,14 +3,55 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      AIRFLOW_DB_PASSWORD: $AIRFLOW_DB_PASSWORD
     ports:
       - 5432:5432
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+      - ./docker/pg-init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./docker/pg-init.sql:/tmp/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
 
   adminer:
     image: adminer
     restart: always
     ports:
       - 8081:8080
+
+  airflow:
+    build: 
+      context: .
+      dockerfile: ./docker/Dockerfile
+    restart: always
+    ports:
+      - 8082:8080
+    environment:
+      AIRFLOW_USERNAME: $AIRFLOW_USERNAME
+      AIRFLOW_FIRSTNAME: $AIRFLOW_FIRSTNAME
+      AIRFLOW_LASTNAME: $AIRFLOW_LASTNAME
+      AIRFLOW_PASSWORD: $AIRFLOW_PASSWORD    
+      AIRFLOW_EMAIL: $AIRFLOW_EMAIL 
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:$AIRFLOW_DB_PASSWORD@db/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+      AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: Europe/Minsk
+      AIRFLOW__WEB_SERVER__WEB_UI_THEME: dark
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    
+    volumes:
+      - ./dags:/root/airflow/dags
+      - ./logs:/root/airflow/logs
+      - ./config:/root/airflow/config
+      - ./plugins:/root/airflow/plugins
+    depends_on:
+      db:
+        condition: service_healthy
