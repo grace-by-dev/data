@@ -25,9 +25,12 @@ def sync_counselings() -> None:
 
         upload_to_sheet(data=data, sheet_id=406103439)
 
-    q = """select counselor_id, time::varchar, user_id is not null as occupied
-        from step_of_faith.schedule_counselor_appointment
-        order by counselor_id, time;
+    q = """
+    select name, time::varchar, user_id is not null as occupied
+    from step_of_faith.counseling as counseling       
+    join step_of_faith.counselors as counselors
+        on counseling.counselor_id = counselors.id       
+    order by counselor_id, time;
     """
 
     load(postgres_retrieve(q))
