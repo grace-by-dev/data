@@ -3,11 +3,12 @@ import string
 import tempfile
 import time
 
+import gspread
+import numpy as np
+
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-import gspread
-import numpy as np
 
 
 cols = string.ascii_uppercase

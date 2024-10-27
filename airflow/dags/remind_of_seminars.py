@@ -1,7 +1,8 @@
+from common import postgres_retrieve
+
 from airflow.decorators import dag
 from airflow.decorators import task
 from airflow.models import Variable
-from common import postgres_retrieve
 
 
 @dag(

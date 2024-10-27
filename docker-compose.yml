@@ -10,8 +10,8 @@ services:
       - 5432:5432
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
-      - ./docker/pg-init.sh:/docker-entrypoint-initdb.d/init.sh
-      - ./docker/pg-init.sql:/tmp/init.sql
+      - ./airflow/docker/airflow-pg-init.sh:/docker-entrypoint-initdb.d/airflow-init.sh
+      - ./airflow/docker/airflow-pg-init.sql:/tmp/airflow-init.sql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -46,10 +46,10 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
     
     volumes:
-      - ./dags:/root/airflow/dags
-      - ./logs:/root/airflow/logs
-      - ./config:/root/airflow/config
-      - ./plugins:/root/airflow/plugins
+      - ./airflow/dags:/root/airflow/dags
+      - ./airflow/logs:/root/airflow/logs
+      - ./airflow/config:/root/airflow/config
+      - ./airflow/plugins:/root/airflow/plugins
     depends_on:
       db:
         condition: service_healthy

@@ -1,9 +1,10 @@
-from airflow.decorators import dag
-from airflow.decorators import task
 from common import postgres_retrieve
 from common import upload_to_sheet
 import pandas as pd
 import pendulum
+
+from airflow.decorators import dag
+from airflow.decorators import task
 
 
 @dag(

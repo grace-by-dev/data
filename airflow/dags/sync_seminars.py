@@ -1,9 +1,10 @@
-from airflow.decorators import dag
-from airflow.decorators import task
 from common import postgres_retrieve
 from common import upload_to_sheet
 import pandas as pd
 import pendulum
+
+from airflow.decorators import dag
+from airflow.decorators import task
 
 
 @dag(
@@ -36,8 +37,8 @@ def sync_seminars() -> None:
     right join combinations comb 
         on enr.seminar_id = comb.id 
             and enr.seminar_number = comb.seminar_number
-    group by title, comb.seminar_number
-    order by enr.seminar_id
+    group by comb.id, title, comb.seminar_number
+    order by comb.id
     """
 
     upload(postgres_retrieve(q))

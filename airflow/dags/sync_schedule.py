@@ -1,9 +1,10 @@
-from airflow.decorators import dag
-from airflow.decorators import task
-from airflow.providers.postgres.hooks.postgres import PostgresHook
 from common import get_sheet
 import pandas as pd
 from psycopg2.extras import execute_batch
+
+from airflow.decorators import dag
+from airflow.decorators import task
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 
 @dag(
