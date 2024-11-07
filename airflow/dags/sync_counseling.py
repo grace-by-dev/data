@@ -8,7 +8,7 @@ from airflow.decorators import task
 
 
 @dag(
-    schedule_interval="0-59/5 8-19 * * *",
+    schedule_interval="0-59/5 * * * *",
     start_date=pendulum.datetime(2024, 1, 1, tz="Europe/Minsk"),
     catchup=False,
     tags=["step-of-faith"],

@@ -8,7 +8,7 @@ from airflow.decorators import task
 
 
 @dag(
-    schedule_interval="2-59/5 8-19 * * *",
+    schedule_interval="2-59/5 * * * *",
     start_date=pendulum.datetime(2024, 1, 1, tz="Europe/Minsk"),
     catchup=False,
     tags=["step-of-faith"],
@@ -27,18 +27,14 @@ def sync_seminars() -> None:
         upload_to_sheet(data=data, sheet_id=1712708177, clear=True)
 
     q = """
-    with combinations as (
-        select id, title, seminar_number 
-        from step_of_faith.seminars
-        cross join (values (1), (2)) temp (seminar_number)
-    )
-    select title, comb.seminar_number, count(user_id) total
-    from step_of_faith.seminar_enrollement enr
-    right join combinations comb 
-        on enr.seminar_id = comb.id 
-            and enr.seminar_number = comb.seminar_number
-    group by comb.id, title, comb.seminar_number
-    order by comb.id
+    select s.title, sn.starts_at::varchar, count(se.user_id) as total
+    from step_of_faith.seminars s
+    cross join step_of_faith.seminar_numbers sn
+    left join step_of_faith.seminar_enrollement se
+        on s.id = se.seminar_id 
+            and sn.seminar_number = se.seminar_number
+    group by s.id, s.title, sn.starts_at
+    order by s.id;
     """
 
     upload(postgres_retrieve(q))
